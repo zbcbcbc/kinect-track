@@ -2,7 +2,7 @@
 #include <opencv2/opencv.hpp>
 #include <string>
 #include <sstream>
-#include <zmq.hpp>
+//#include <zmq.hpp>
 #include <algorithm>
 #include <cmath>
 
@@ -14,28 +14,26 @@ extern "C" {
 using namespace std;
 using namespace cv;
 
+/*
+ * Hardware dependent code for getting image rgb
+ * Abstract kinect or asus MI code
+ * */
 void get_image(Mat &frame) {
-    cvtColor(Mat(freenect_sync_get_rgb_cv(0)), frame, CV_RGB2BGR);
+    // cvtColor(Mat(freenect_sync_get_rgb_cv(0)), frame, CV_RGB2BGR); // Kinect version
+	cvtColor(Mat(freenect_sync_get_rgb_cv(0)), frame, CV_RGB2BGR);
 }
 
-void get_depth(Mat &frame) {
-    frame = Mat(freenect_sync_get_depth_cv(0));
-}
+
 /*
-string pos_to_json(int x, int y, double depth, double area, int theta, int k) {
-    stringstream message_stream;
-    message_stream << "[{\"x\": ";
-    message_stream << x;
-    message_stream << ", \"y\": ";
-    message_stream << y;
-    message_stream << ", \"depth\": ";
-    message_stream << depth;
-    message_stream << ", \"area\": ";
-    message_stream << area;
-    message_stream << ", \"theta\": 0, \"k\": 11}]";
-    return message_stream.str();
+ * Hardware dependent code for getting image depth
+ * Abstract kinect or asus MI code
+ */
+void get_depth(Mat &frame) {
+    // frame = Mat(freenect_sync_get_depth_cv(0)); // Kinect version
+	frame = Mat(freenect_sync_get_depth_cv(0));
+	
 }
-*/
+
 
 string pos_to_json(int x, int y, int theta, int k) {
     stringstream message_stream;
@@ -48,6 +46,8 @@ string pos_to_json(int x, int y, int theta, int k) {
 }
 
 
+//TODO: broadcast feature not implemented
+/*
 void broadcast_pos_json(zmq::socket_t &s, int x, int y) {
     if (x == 0 && y == 0) {
         string message = "[]";
@@ -76,6 +76,8 @@ void broadcast_pos_bin(zmq::socket_t &s, int x, int y) {
 void broadcast_pos(zmq::socket_t &s, int x, int y) {
     broadcast_pos_bin(s, x, y);
 }
+
+*/
 
 double depth_to_meters(int raw_depth)
 {
@@ -148,11 +150,11 @@ Mat colorize_depth(Mat d)
 int main(int, char **)
 {
 
-    zmq::context_t ctx(1);
-    zmq::socket_t s(ctx, ZMQ_PUB);
-    s.bind("tcp://*:6969");
-    zmq::socket_t s_json(ctx, ZMQ_PUB);
-    s_json.bind("tcp://*:6968");
+    //zmq::context_t ctx(1);
+    //zmq::socket_t s(ctx, ZMQ_PUB);
+    //s.bind("tcp://*:6969");
+    //zmq::socket_t s_json(ctx, ZMQ_PUB);
+    //s_json.bind("tcp://*:6968");
 
     namedWindow("rgb", 1);
     //namedWindow("depth", 1);
@@ -309,13 +311,15 @@ int main(int, char **)
             //y_3d = (0.4)*(depth_to_meters(minDepth) - 1) * 175 + 0.6*y_3d;
             //y_3d = (1)*(depth_to_meters(minDepth) - 0.2) * 175 + 0.0*y_3d;
 
-            broadcast_pos(s, x_3d, y_3d);
+			//TODO: broadcast feature temporary disabled
+            //broadcast_pos(s, x_3d, y_3d);
             //broadcast_pos_json(s_json, x_3d, y_3d,minDepth,area);
-            broadcast_pos_json(s_json, x_3d, y_3d);
+            //broadcast_pos_json(s_json, x_3d, y_3d);
         } else {
-            broadcast_pos(s, 0, 0);
+			//TODO: broadcast feature temporary disabled
+            //broadcast_pos(s, 0, 0);
             //broadcast_pos_json(s_json, 0, 0,0,0);
-            broadcast_pos_json(s_json, 0, 0);
+            //broadcast_pos_json(s_json, 0, 0);
         }
 
 showimg:
